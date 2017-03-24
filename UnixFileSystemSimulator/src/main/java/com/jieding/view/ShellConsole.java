@@ -24,14 +24,19 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.event.ActionEvent;
 
+import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.text.DefaultCaret;
+import javax.swing.KeyStroke;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
+import com.jieding.controller.TextAreaKeyListener;
 import com.jieding.view.components.MyCaret;
 
 
@@ -62,36 +67,74 @@ public class ShellConsole extends JFrame {
 		
 		Font font = new Font(FONT_STYLE,Font.BOLD,FONT_DEFAULT_SIZE);
 		
-		JTextArea outputArea = new JTextArea();
-		outputArea.setBounds(0, 0, TEXTAREA_DEFAULT_WIDTH, TEXTAREA_DEFAULT_HEIGHT);
-		outputArea.setFont(font);
-		outputArea.setForeground(new Color(FONT_R, FONT_G, FONT_B));
-		outputArea.setBackground(Color.black);
-		outputArea.setEditable(false);
-		outputArea.setLineWrap(true);       
-		outputArea.setWrapStyleWord(true);  
-		outputArea.setText(DEFAULT_INSTRUCTION);
+		JTextArea outArea = new JTextArea();
+		outArea.setBounds(0, 0, TEXTAREA_DEFAULT_WIDTH, TEXTAREA_DEFAULT_HEIGHT);
+		outArea.setFont(font);
+		outArea.setForeground(new Color(FONT_R, FONT_G, FONT_B));
+		outArea.setBackground(Color.black);
+		outArea.setEditable(false);
+		outArea.setLineWrap(true);        
+		outArea.setText(DEFAULT_INSTRUCTION);
 		
 		
-		JTextArea cmdArea = new JTextArea();
-		cmdArea.setBounds(0, 0, TEXTAREA_DEFAULT_WIDTH, getHeight());
+		final JTextArea cmdArea = new JTextArea();
+		
+		//cmdArea.setBounds(0, 0, TEXTAREA_DEFAULT_WIDTH, getHeight());
+		cmdArea.setPreferredSize(new Dimension(TEXTAREA_DEFAULT_WIDTH,getHeight()));
 		cmdArea.setFont(font);
 		cmdArea.setForeground(new Color(FONT_R, FONT_G, FONT_B));
 		cmdArea.setBackground(Color.black);
 		cmdArea.setLineWrap(true);       
-		cmdArea.setWrapStyleWord(true);  
 		cmdArea.setText(JSHELL);
 		
 		cmdArea.setCaret(new MyCaret());
-		//cmdArea.getCaret().setBlinkRate(1000);
+		cmdArea.getCaret().setBlinkRate(1000);
 		cmdArea.setCaretColor(new Color(FONT_R, FONT_G, FONT_B));
 		cmdArea.getCaret().setDot(JSHELL.length());
 		
 		cmdArea.requestFocus();
 		cmdArea.getCaret().setVisible(true);
 		cmdArea.requestFocus();
+		final TextAreaKeyListener keyListener = new TextAreaKeyListener();
+		keyListener.setCmdArea(cmdArea);
+		keyListener.setOutArea(outArea);
+		KeyStroke enter = KeyStroke.getKeyStroke("ENTER");
+		cmdArea.getInputMap().put(enter, "none");
 		
-		contentPanel.add(outputArea);
+		cmdArea.addKeyListener(keyListener);
+		//Action e = cmdArea.getKeymap().getAction(KeyStroke.getKeyStroke("delete-previous-word"));
+		//cmdArea.getInputMap().put(KeyStroke.getKeyStroke("delete-previous-word"), "none");
+		//cmdArea.getKeymap().getDefaultAction().
+		
+		KeyStroke[] list = cmdArea.getKeymap().getResolveParent().getBoundKeyStrokes();
+		System.out.println(list.length);
+		System.out.println(cmdArea.getKeymap().getDefaultAction()==null);
+		cmdArea.getDocument().addDocumentListener(new DocumentListener() {
+			
+			public void removeUpdate(DocumentEvent e) {
+				// TODO Auto-generated method stub
+				if(cmdArea.getText().length()<10){
+					System.out.println("short");
+					//KeyStroke bs = KeyStroke.getKeyStroke("BACKSPACE");
+					//cmdArea.getInputMap().put(bs, "none");
+					System.out.println();
+					
+				}
+			}
+			
+			public void insertUpdate(DocumentEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			public void changedUpdate(DocumentEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+		
+		
+		contentPanel.add(outArea);
 		contentPanel.add(cmdArea);
 		JScrollPane scroll=new JScrollPane();
 		scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);   
@@ -99,11 +142,7 @@ public class ShellConsole extends JFrame {
 		scroll.setBackground(Color.BLACK);
 		scroll.setViewportView(contentPanel);
 		container.add(scroll);
-		
-		/*contentPanel.add(outputArea);
-		contentPanel.add(cmdArea);
-		//contentPanel.add(scroll);
-		setContentPane(contentPanel);*/
+
 		
 	}
 	/**

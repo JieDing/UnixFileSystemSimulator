@@ -24,20 +24,21 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.event.ActionEvent;
+import java.awt.Point;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
-import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 
+import com.jieding.controller.BackspaceNavigationFilter;
 import com.jieding.controller.TextAreaKeyListener;
-import com.jieding.view.components.MyCaret;
+import com.jieding.view.components.UnderLineCaret;
 
 
 public class ShellConsole extends JFrame {
@@ -58,12 +59,13 @@ public class ShellConsole extends JFrame {
 		Container container=getContentPane();
 		
 		JPanel contentPanel = new JPanel();
-		contentPanel.setPreferredSize(new Dimension(800,700));
+		contentPanel.setPreferredSize(new Dimension(TEXTAREA_DEFAULT_WIDTH,1000));
 		contentPanel.setBackground(Color.BLACK);
 		FlowLayout f = new FlowLayout();
 		f.setAlignment(FlowLayout.LEFT);
 		contentPanel.setLayout(f);
 		
+		JScrollPane scroll=new JScrollPane();
 		
 		Font font = new Font(FONT_STYLE,Font.BOLD,FONT_DEFAULT_SIZE);
 		
@@ -80,14 +82,14 @@ public class ShellConsole extends JFrame {
 		final JTextArea cmdArea = new JTextArea();
 		
 		//cmdArea.setBounds(0, 0, TEXTAREA_DEFAULT_WIDTH, getHeight());
-		cmdArea.setPreferredSize(new Dimension(TEXTAREA_DEFAULT_WIDTH,getHeight()));
+		cmdArea.setSize(new Dimension(TEXTAREA_DEFAULT_WIDTH,1));
 		cmdArea.setFont(font);
 		cmdArea.setForeground(new Color(FONT_R, FONT_G, FONT_B));
 		cmdArea.setBackground(Color.black);
 		cmdArea.setLineWrap(true);       
 		cmdArea.setText(JSHELL);
 		
-		cmdArea.setCaret(new MyCaret());
+		cmdArea.setCaret(new UnderLineCaret());
 		cmdArea.getCaret().setBlinkRate(1000);
 		cmdArea.setCaretColor(new Color(FONT_R, FONT_G, FONT_B));
 		cmdArea.getCaret().setDot(JSHELL.length());
@@ -98,49 +100,33 @@ public class ShellConsole extends JFrame {
 		final TextAreaKeyListener keyListener = new TextAreaKeyListener();
 		keyListener.setCmdArea(cmdArea);
 		keyListener.setOutArea(outArea);
+		JScrollBar bar = scroll.getVerticalScrollBar();
+		//bar.setPreferredSize(new Dimension(10,20));
+		keyListener.setContentPanel(contentPanel);
+		keyListener.setScroll(scroll);
+		
 		KeyStroke enter = KeyStroke.getKeyStroke("ENTER");
 		cmdArea.getInputMap().put(enter, "none");
 		
 		cmdArea.addKeyListener(keyListener);
-		//Action e = cmdArea.getKeymap().getAction(KeyStroke.getKeyStroke("delete-previous-word"));
-		//cmdArea.getInputMap().put(KeyStroke.getKeyStroke("delete-previous-word"), "none");
-		//cmdArea.getKeymap().getDefaultAction().
-		
-		KeyStroke[] list = cmdArea.getKeymap().getResolveParent().getBoundKeyStrokes();
-		System.out.println(list.length);
-		System.out.println(cmdArea.getKeymap().getDefaultAction()==null);
-		cmdArea.getDocument().addDocumentListener(new DocumentListener() {
-			
-			public void removeUpdate(DocumentEvent e) {
-				// TODO Auto-generated method stub
-				if(cmdArea.getText().length()<10){
-					System.out.println("short");
-					//KeyStroke bs = KeyStroke.getKeyStroke("BACKSPACE");
-					//cmdArea.getInputMap().put(bs, "none");
-					System.out.println();
-					
-				}
-			}
-			
-			public void insertUpdate(DocumentEvent e) {
-				// TODO Auto-generated method stub
 				
-			}
-			
-			public void changedUpdate(DocumentEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-		});
+		cmdArea.setNavigationFilter(new BackspaceNavigationFilter(JSHELL.length(), cmdArea));
 		
+		this.addWindowListener( new WindowAdapter() {
+		    public void windowOpened( WindowEvent e ){
+		        cmdArea.requestFocus();
+		    }
+		}); 
 		
 		contentPanel.add(outArea);
 		contentPanel.add(cmdArea);
-		JScrollPane scroll=new JScrollPane();
+		
+		
 		scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);   
-		scroll.setHorizontalScrollBarPolicy( JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);  
+		scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);  
 		scroll.setBackground(Color.BLACK);
 		scroll.setViewportView(contentPanel);
+		
 		container.add(scroll);
 
 		

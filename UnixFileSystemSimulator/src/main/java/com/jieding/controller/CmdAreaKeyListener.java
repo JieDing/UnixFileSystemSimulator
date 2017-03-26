@@ -1,7 +1,7 @@
 package com.jieding.controller;
 
 import static com.jieding.view.constants.ViewConstant.JSHELL;
-
+import static com.jieding.controller.constants.ControllerConstants.INVALIDCOMMAND;
 import java.awt.Dimension;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -12,7 +12,7 @@ import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
 import javax.swing.text.DefaultEditorKit;
 
-public class TextAreaKeyListener implements KeyListener {
+public class CmdAreaKeyListener implements KeyListener {
 	private JScrollPane scroll;
 	private JPanel contentPanel;
 	public JScrollPane getScroll() {
@@ -60,12 +60,21 @@ public class TextAreaKeyListener implements KeyListener {
 		// TODO Auto-generated method stub
 		switch(e.getKeyCode()){
 			case KeyEvent.VK_ENTER:
+				//obtain user input without prefix
+				String inputCmd = cmdArea.getText().substring(JSHELL.length()).trim();
+				CommandController cc = null;
+				if (inputCmd.length()>0){
+					 cc = new CommandController(inputCmd);
+				}
+				if(cc==null)
+					outArea.append(cmdArea.getText()+"\n");
+				else{
+					if(!cc.isCommandValid())
+						outArea.append(JSHELL+"\n"+cc.getcName()+INVALIDCOMMAND+"\n");
 				
-				outArea.append(cmdArea.getText()+"\n");
+				}
 				cmdArea.setText(JSHELL);
 				cmdArea.getCaret().setDot(JSHELL.length());
-				System.out.println("scroll.getViewport().getViewPosition().y  "+scroll.getViewport().getViewPosition().y);
-				System.out.println("contentPanel.getHeight() "+contentPanel.getHeight());
 				if(scroll.getViewport().getViewPosition().y +500>=contentPanel.getHeight()){
 					contentPanel.setPreferredSize(new Dimension(contentPanel.getWidth(),contentPanel.getHeight()+100));
 					contentPanel.revalidate();
@@ -73,9 +82,7 @@ public class TextAreaKeyListener implements KeyListener {
 				}
 				
 				break;
-			case KeyEvent.VK_BACK_SPACE:
-				
-				break;
+			
 		}
 	}
 

@@ -37,7 +37,7 @@ import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
 
 import com.jieding.controller.BackspaceNavigationFilter;
-import com.jieding.controller.TextAreaKeyListener;
+import com.jieding.controller.CmdAreaKeyListener;
 import com.jieding.view.components.UnderLineCaret;
 
 
@@ -97,11 +97,10 @@ public class ShellConsole extends JFrame {
 		cmdArea.requestFocus();
 		cmdArea.getCaret().setVisible(true);
 		cmdArea.requestFocus();
-		final TextAreaKeyListener keyListener = new TextAreaKeyListener();
+		final CmdAreaKeyListener keyListener = new CmdAreaKeyListener();
 		keyListener.setCmdArea(cmdArea);
 		keyListener.setOutArea(outArea);
-		JScrollBar bar = scroll.getVerticalScrollBar();
-		//bar.setPreferredSize(new Dimension(10,20));
+		
 		keyListener.setContentPanel(contentPanel);
 		keyListener.setScroll(scroll);
 		

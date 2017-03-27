@@ -24,5 +24,5 @@ public class ViewConstant {
 			+ "@Author: JieDing\n"
 			+ "@Email: dingjwilliams@gmail.com\n"
 			+ "@Git: https://github.com/JieDing/\n";
-	public static final String JSHELL = "Jshell : \\> ";
+	public static final String JSHELL = "Jshell : \\>  ";
 }

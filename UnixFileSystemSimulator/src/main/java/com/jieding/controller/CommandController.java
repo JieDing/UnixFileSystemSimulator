@@ -1,8 +1,13 @@
 package com.jieding.controller;
 
-import static com.jieding.controller.constants.ControllerConstant.*;
+import static com.jieding.controller.constants.ControllerConstant.BUILTINCOMMANDS;
+import static com.jieding.controller.constants.ControllerConstant.MKDIR_NULL_ARGUMENTS;
+import static com.jieding.controller.constants.ControllerConstant.MKDIR_TOO_MANY_ARGUMENTS;
+import static com.jieding.controller.constants.ControllerConstant.SYSTEMCOMMANDS;
 
-import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import com.jieding.model.FileSystemTree;
 public class CommandController {
@@ -10,6 +15,9 @@ public class CommandController {
 	private FileSystemTree fst  ;
 	private String inputCmd;
 	private String cName;
+	private String option;
+	private List<String> arguments;
+	
 	
 	public CommandController(){
 		fst= new FileSystemTree();
@@ -26,8 +34,7 @@ public class CommandController {
 		this.cName = cName;
 	}
 
-	private String option;
-	private String[] arguments;
+
 	
 	
 	public boolean isCommandValid(){
@@ -54,11 +61,12 @@ public class CommandController {
 			else{
 				this.cName = inputCmd.substring(0,inputCmd.indexOf(" "));
 				inputCmd = inputCmd.substring(inputCmd.indexOf(" ")+1);
-				arguments = inputCmd.split(" ");
-				for(int i=0; i<arguments.length; i++){
-					if(arguments[i].startsWith("--")){
-						this.option =  arguments[i];
-						arguments[i] = null;
+				arguments = Arrays.asList(inputCmd.split(" "));
+				arguments = new ArrayList<String> (arguments);
+				for(int i=0; i<arguments.size(); i++){
+					if(arguments.get(i).equals("-p")){
+						this.option =  "-p";
+						arguments.remove(i);
 					}
 						
 				}
@@ -83,12 +91,14 @@ public class CommandController {
 				if(arguments == null){
 					return MKDIR_NULL_ARGUMENTS;
 				}
-				if(arguments.length>1){
+				if(arguments.size()>1){
 					return MKDIR_TOO_MANY_ARGUMENTS;
 				}
+				if("-p".equals(option)){
+					return fst.makeDirectories(arguments.get(0));
+				}
 				else{
-					//System.out.println(arguments[0]);
-					return fst.makeDirectory(arguments[0]);
+					return fst.makeDirectory(arguments.get(0));
 				}
 				
 			}

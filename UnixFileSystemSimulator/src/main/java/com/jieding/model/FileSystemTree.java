@@ -31,6 +31,70 @@ public class FileSystemTree{
 		
 		return currentNode.path;
 	}
+	public String makeDirectories(String path){
+		if(path.equals("/"))
+			return MKDIR_ROOT;
+		if(path.endsWith("/"))
+			path = path.substring(0,path.lastIndexOf("/"));
+		
+		if(path.startsWith("/")){
+			Node n = findNodeByAbsPath(path);
+			if(n!=null)
+				return MKDIR_ERROR+path+MKDIR_EXISTING;
+			else{
+				forcingCreateNodeByAbsPath(path);
+			}
+		}
+		
+		return null;
+	}
+	
+	private void forcingCreateNodeByAbsPath(String path){
+		Node parent = rootNode;
+		Node n = null;
+		while(path.contains("/")){
+			n = parent.firstChild;
+			String dirName = "";
+			String pathValue = "";
+			if(path.substring(path.indexOf("/")+1).contains("/"))
+				dirName = dirName+path.substring(0,path.indexOf("/"));
+			else
+				dirName = dirName+path.substring(0,path.length());
+			pathValue = dirName;
+			//remove the "/"
+			path = path.substring(path.indexOf("/")+1);
+			String nodeName = null;
+			if(path.contains("/")){
+				nodeName= path.substring(0,path.indexOf("/"));
+				path = path.substring(path.indexOf("/"));
+			}
+			else nodeName = path;
+			n = traverseTree(n,nodeName);
+			if(n==null){
+				
+				dirName = translateToActualPath(dirName);
+				
+				File f = new File(dirName,nodeName);
+				
+				if(!f.exists()){
+					f.mkdir();
+				}
+				
+				 Node newNode = new Node(parent,null,null,pathValue,f);
+				 if(parent.firstChild!=null){
+						Node x = null;
+						for(x =parent.firstChild;n.nextSibling!=null; ){
+							x = x.nextSibling;
+						}
+						x.nextSibling = newNode;
+					}
+					else
+						parent.firstChild = newNode;
+			}
+			if(path.contains("/"))
+				parent = parent.firstChild;
+		}
+	}
 	
 	public String makeDirectory(String path){
 		
@@ -41,53 +105,123 @@ public class FileSystemTree{
 		if(path.endsWith("/"))
 			path = path.substring(0,path.lastIndexOf("/"));
 		//use the absolute path
+		
+		Node parent = null;
+		String dirName = null;
+		Node newNode = null;
+		String pathValue = null;
+		
 		if(path.startsWith("/")){
+			parent = findParentByAbsPath(path);
 			
-			Node parent = findParentByPath(path);
-			
-			if(parent ==null)
-				return MKDIR_ERROR+path+MKDIR_MISSING;
-			String dirName = null;
 			if(path.substring(path.indexOf("/")+1).contains("/"))
 				dirName = obtainFileDirectory(path);
 			else
 				dirName = "/";
-			String fileName = obtainFileName(path);
-			dirName = translateToActualPath(dirName);
 			
-			File f = new File(dirName,fileName);
-			if(!f.exists()){
-				f.mkdir();
-			}else{
-				return MKDIR_ERROR+path+MKDIR_EXISTING;
-			}
-			
-			Node newNode = new Node(parent,null,null,path,f);
-			
-			if(parent.firstChild!=null){
-				Node n = null;
-				for(n =parent.firstChild;n.nextSibling!=null; ){
-					
-					n = n.nextSibling;
-					if(n.path.equals(path))
-						return MKDIR_ERROR+path+MKDIR_EXISTING;
-				}
-				n.nextSibling = newNode;
-			}
-			else
-				parent.firstChild = newNode;
-			//System.out.println(rootNode.firstChild == null);
-			size++;
-		
+			pathValue = path;
 		}
 		//use the relative path
 		else{
+			parent = findParentByRelativePath(path);
+			if(path.contains("/")){
+				if(currentNode == rootNode)
+					dirName = "/"+obtainFileDirectory(path);
+				else
+					dirName = parent.path+"/"+obtainFileDirectory(path);
+				pathValue = dirName+ "/"+obtainFileName(path);
+			}
+			else{
+				if(currentNode == rootNode){
+					dirName = currentNode.path;
+					pathValue = dirName+obtainFileName(path);
+				}
+				else{
+					dirName = currentNode.path;
+					pathValue = dirName+ "/"+obtainFileName(path);
+				}
+			}
 			
 		}
+		
+		if(parent ==null)
+			return MKDIR_ERROR+path+MKDIR_MISSING;
+		
+		
+		String fileName = obtainFileName(path);
+		dirName = translateToActualPath(dirName);
+		
+		File f = new File(dirName,fileName);
+		
+		if(!f.exists()){
+			f.mkdir();
+		}else{
+			return MKDIR_ERROR+path+MKDIR_EXISTING;
+		}
+		
+		 newNode = new Node(parent,null,null,pathValue,f);
+		
+		if(parent.firstChild!=null){
+			Node n = null;
+			for(n =parent.firstChild;n.nextSibling!=null; ){
+				
+				n = n.nextSibling;
+				if(n.path.equals(path))
+					return MKDIR_ERROR+path+MKDIR_EXISTING;
+			}
+			n.nextSibling = newNode;
+		}
+		else
+			parent.firstChild = newNode;
+		
+		size++;	
+				
+		
 		return null;
 	}
 	
-	private Node findParentByPath(String path) {
+	private Node findParentByRelativePath(String path){
+		Node n = currentNode.firstChild;
+		
+		if(!path.contains("/"))
+			return currentNode;
+		
+		while(path.contains("/")){
+			
+			String nodeName= path.substring(0,path.indexOf("/"));
+			path = path.substring(path.indexOf("/"));
+			
+			n = traverseTree(n,nodeName);
+			
+			if(!path.substring(path.indexOf("/")+1).contains("/"))
+				return n;
+			if(n.firstChild==null)
+				return null;
+			n = n.firstChild;
+			path = path.substring(path.indexOf("/")+1);
+		}
+		return n;
+	}
+	private Node findNodeByAbsPath(String path){
+		Node n = rootNode.firstChild;
+		while(path.contains("/")){
+			//remove the "/"
+			path = path.substring(path.indexOf("/")+1);
+			String nodeName = null;
+			if(path.contains("/")){
+				nodeName= path.substring(0,path.indexOf("/"));
+				path = path.substring(path.indexOf("/"));
+			}
+			else nodeName = path;
+			n = traverseTree(n,nodeName);
+			if(n ==null)
+				return null;
+			if(path.contains("/"))
+				n = n.firstChild;
+		}
+		return n;
+	}
+	private Node findParentByAbsPath(String path) {
 		// TODO Auto-generated method stub
 		Node n = rootNode.firstChild;
 		
@@ -100,8 +234,6 @@ public class FileSystemTree{
 
 			String nodeName= path.substring(0,path.indexOf("/"));
 			path = path.substring(path.indexOf("/"));
-			
-			
 			
 			n = traverseTree(n,nodeName);
 			
@@ -118,7 +250,7 @@ public class FileSystemTree{
 	private Node traverseTree(Node n, String nodeName) {
 		// TODO Auto-generated method stub
 		while(n!=null){
-			
+
 			if(n.file.getName().equals(nodeName)){
 				
 				return n;
@@ -129,16 +261,12 @@ public class FileSystemTree{
 	}
 
 	private String translateToActualPath(String path){
-		if(path.startsWith("/")){
+		
 			path = path.substring(1);
 			path = actualHomeDirectory+path;
 			path = path.replace("/", "\\");
 			
-			//path = path.replaceFirst("/", actualHomeDirectory);
-		}
-		else{
-			
-		}
+		
 		return path;
 	}
 	

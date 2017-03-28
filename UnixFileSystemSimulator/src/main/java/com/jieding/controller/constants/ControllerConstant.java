@@ -32,4 +32,6 @@ public class ControllerConstant {
 	public static final String MKDIR_ERROR = "cannot create directory \"";
 	public static final String MKDIR_MISSING = "\" : No such file or directory!";
 	public static final String MKDIR_EXISTING = "\" : the file or directory already exists!";
+	public static final String LS_TOO_MANY_ARGUMENTS = "ls command can only accept one argument\n";
+	
 }

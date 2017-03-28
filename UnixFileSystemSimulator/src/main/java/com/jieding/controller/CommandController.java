@@ -4,6 +4,7 @@ import static com.jieding.controller.constants.ControllerConstant.BUILTINCOMMAND
 import static com.jieding.controller.constants.ControllerConstant.MKDIR_NULL_ARGUMENTS;
 import static com.jieding.controller.constants.ControllerConstant.MKDIR_TOO_MANY_ARGUMENTS;
 import static com.jieding.controller.constants.ControllerConstant.SYSTEMCOMMANDS;
+import static com.jieding.controller.constants.ControllerConstant.LS_TOO_MANY_ARGUMENTS;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,13 +51,13 @@ public class CommandController {
 		if(!inputCmd.contains(" ")){
 			this.cName = inputCmd;
 			this.option = null;
-			this.arguments = null;
+			this.arguments = new ArrayList<String>();
 		}else{
 			inputCmd = inputCmd.replaceAll(" +"," ");
 			if(!inputCmd.contains(" ")){
 				this.cName = inputCmd;
 				this.option = null;
-				this.arguments = null;
+				this.arguments = new ArrayList<String>();
 			}
 			else{
 				this.cName = inputCmd.substring(0,inputCmd.indexOf(" "));
@@ -64,8 +65,8 @@ public class CommandController {
 				arguments = Arrays.asList(inputCmd.split(" "));
 				arguments = new ArrayList<String> (arguments);
 				for(int i=0; i<arguments.size(); i++){
-					if(arguments.get(i).equals("-p")){
-						this.option =  "-p";
+					if(arguments.get(i).equals("-p")||arguments.get(i).equals("-l")){
+						this.option =  arguments.get(i);
 						arguments.remove(i);
 					}
 						
@@ -102,6 +103,25 @@ public class CommandController {
 				}
 				
 			}
+			case "ls": {
+				if(arguments.size()>1){
+					return LS_TOO_MANY_ARGUMENTS;
+				}
+				if(arguments.size()==0 && !"-l".equals(option)){
+					return fst.listFilesByAbsPath(null, false);
+				}
+				if(arguments.size()==0 && "-l".equals(option)){
+					return fst.listFilesByAbsPath(null, true);
+				}
+				if(arguments.size()!=0 && !"-l".equals(option)){
+					return fst.listFilesByAbsPath(arguments.get(0), false);
+				}
+				if(arguments.size()!=0 && "-l".equals(option)){
+					return fst.listFilesByAbsPath(arguments.get(0), true);
+				}
+				
+			}
+			
 			default: 
 				return null;
 				
